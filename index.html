@@ -1,44 +1,337 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Basit Oda</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burak Deveci | Coder & Web Developer</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; }
-        #oda { border: 2px solid #333; width: 300px; margin: 20px auto; padding: 20px; background: white; border-radius: 15px; }
-        .oyuncu { background: #e1ffc7; margin: 5px; padding: 10px; border-radius: 5px; }
+        /* Genel Reset ve Tema Ayarları */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050505;
+            color: #ffffff;
+        }
+
+        /* 1. GİRİŞ VE YÜKLEME EKRANI (INTRO) */
+        #loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #07070c;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 3D Modelin Duracağı Alan */
+        #canvas3d {
+            width: 100%;
+            height: 55vh;
+            cursor: move;
+        }
+
+        .intro-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #111122;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.1);
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ffcc, #0099ff);
+            box-shadow: 0 0 8px #00ffcc;
+            transition: width 0.1s linear;
+        }
+
+        .progress-text {
+            font-size: 1.1rem;
+            margin-top: 12px;
+            color: #0099ff;
+            font-weight: bold;
+        }
+
+        /* 2. ANA WEB SİTESİ İÇERİĞİ */
+        #main-site {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            background: linear-gradient(135deg, #050508 0%, #0b0b16 100%);
+            padding: 60px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.1);
+            padding-bottom: 30px;
+        }
+
+        header h1 {
+            color: #00ffcc;
+            font-size: 3.5rem;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #0099ff;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+
+        /* Bilgi Kartları */
+        .content-section {
+            background: rgba(11, 11, 22, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 204, 0.1);
+            border-left: 5px solid #00ffcc;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .content-section:hover {
+            transform: translateY(-5px);
+            border-color: #0099ff;
+        }
+
+        .content-section h2 {
+            margin-bottom: 20px;
+            color: #00ffcc;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .content-section p {
+            color: #b3b3cc;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        /* Kod Blokları Görünümü */
+        .code-accent {
+            color: #ff0055;
+            font-weight: bold;
+        }
+        
+        .code-string {
+            color: #ce9178;
+        }
+
+        /* Scrollbar Özelleştirme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ffcc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Sesli Oda Taslağı</h1>
-    
-    <div id="oda">
-        <h3>İçeridekiler</h3>
-        <div id="liste">
-            <p>Henüz kimse yok...</p>
+    <div id="loader-container">
+        <div class="intro-text">&lt; CODER BURAK DEVECI /&gt;</div>
+        
+        <div id="canvas3d"></div> 
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="fill"></div>
+            </div>
+            <div class="progress-text" id="percent">0%</div>
         </div>
     </div>
 
-    <input type="text" id="isimInput" placeholder="Adını yaz...">
-    <button onclick="katil()">Odaya Gir</button>
+    <div id="main-site">
+        <div class="container">
+            <header>
+                <h1>Burak Deveci</h1>
+                <p>[ Senior Web Developer & Coder ]</p>
+            </header>
+
+            <section class="content-section">
+                <h2><span>// </span>Hakkımda</h2>
+                <p>Merhaba, ben <span class="code-accent">Burak Deveci</span>. Teknolojinin mutfağında, kodların arasında kaybolmayı ve fikirleri dijital dünyada dinamik projelere dönüştürmeyi seviyorum. Modern web mimarileri, etkileşimli arayüzler ve siber estetiğe sahip tasarımlar üzerine çalışıyorum. Kod yazmak benim için sadece bir meslek değil, sınırları zorladığım bir dijital sanattır.</p>
+            </section>
+
+            <section class="content-section">
+                <h2><span>// </span>Web Site Kurma & Yazılım</h2>
+                <p>Bir web sitesi kurmak, sadece kod satırlarını arka arkaya dizmekten ibaret değildir. Başarılı bir yazılım; kusursuz hız performansı, arama motoru optimizasyonu (SEO), mobil uyumluluk ve güvenli bir altyapı gerektirir. HTML5, CSS3, JavaScript ve modern kütüphaneleri harmanlayarak, projeleri dünya standartlarında hayata geçiriyorum.</p>
+            </section>
+
+            <section class="content-section">
+                <h2><span>// </span>Uzmanlık Alanları</h2>
+                <p>
+                    • <span class="code-string">Frontend Geliştirme:</span> Kullanıcı dostu, hızlı ve modern arayüz tasarımları.<br>
+                    • <span class="code-string">3D Web Deneyimleri:</span> WebGL ve Three.js tabanlı interaktif 3D animasyonlar.<br>
+                    • <span class="code-string">Responsive Altyapı:</span> Mobil, tablet ve masaüstü cihazların tümüyle %100 uyumlu kodlama.
+                </p>
+            </section>
+        </div>
+    </div>
 
     <script>
-        function katil() {
-            let isim = document.getElementById('isimInput').value;
-            if(isim) {
-                let liste = document.getElementById('liste');
-                // Eğer ilk kişi giriyorsa "henüz kimse yok" yazısını sil
-                if(liste.innerHTML.includes("Henüz")) liste.innerHTML = "";
+        // --- 1. SİMÜLE YÜKLEME EKRANI FONKSİYONU ---
+        let currentProgress = 0;
+        const fillElement = document.getElementById('fill');
+        const percentElement = document.getElementById('percent');
+        
+        const loadingProgress = setInterval(() => {
+            if (currentProgress >= 100) {
+                clearInterval(loadingProgress);
                 
-                // Yeni bir oyuncu kutusu oluştur
-                liste.innerHTML += <div class="oyuncu">🟢 ${isim}</div>;
-                document.getElementById('isimInput').value = ""; // Kutuyu temizle
+                // Yükleme %100 olduğunda loader'ı kapat ve ana siteyi yumuşakça aç
+                gsap.to("#loader-container", { 
+                    opacity: 0, 
+                    duration: 0.8, 
+                    onComplete: () => {
+                        document.getElementById('loader-container').style.display = 'none';
+                        // Sayfa yüklendiğinde gövdedeki kilitlenmeyi kaldır (Scroll aktif olsun)
+                        document.body.style.overflow = 'auto';
+                        document.documentElement.style.overflow = 'auto';
+                    }
+                });
+                
+                gsap.to("#main-site", { 
+                    visibility: "visible", 
+                    opacity: 1, 
+                    duration: 1, 
+                    delay: 0.2 
+                });
             } else {
-                alert("Lütfen bir isim yaz!");
+                // Rastgele hızlarda yükleme efekti yaratma
+                currentProgress += Math.floor(Math.random() * 4) + 1; 
+                if(currentProgress > 100) currentProgress = 100;
+                
+                fillElement.style.width = currentProgress + '%';
+                percentElement.innerText = currentProgress + '%';
             }
-        }
-    </script>
+        }, 100);
 
+        // --- 2. THREE.JS İLE HAREKETLİ 3D NESNE ALANI ---
+        const container = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        
+        // Kamera Ayarları
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 3.5;
+
+        // Renderer Ayarları
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // 3D OBJELER: İç içe geçmiş siber tel çerçeve geometriler (BD Harflerini simgeler yapıda)
+        const group3D = new THREE.Group();
+
+        // Dış Küp
+        const outerGeo = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+        const outerMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true, transparent: true, opacity: 0.8 });
+        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        group3D.add(outerMesh);
+
+        // İç Octahedron (Hareket Çeşitliliği İçin)
+        const innerGeo = new THREE.OctahedronGeometry(0.9);
+        const innerMat = new THREE.MeshBasicMaterial({ color: 0x0099ff, wireframe: true, transparent: true, opacity: 0.6 });
+        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+        group3D.add(innerMesh);
+
+        scene.add(group3D);
+
+        // Fare Hareket Takibi
+        let targetX = 0;
+        let targetY = 0;
+        
+        window.addEventListener('mousemove', (event) => {
+            // Fare koordinatlarını normalize etme (-1 ile 1 arası)
+            targetX = (event.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+            targetY = (event.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+        });
+
+        // Dokunmatik Ekranlar İçin Mobil Desteği
+        window.addEventListener('touchmove', (event) => {
+            if(event.touches.length > 0) {
+                targetX = (event.touches[0].clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+                targetY = (event.touches[0].clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+            }
+        });
+
+        // 3D Animasyon Döngüsü
+        function renderLoop() {
+            requestAnimationFrame(renderLoop);
+            
+            // Sabit kendi etrafında dönüş hızı
+            group3D.rotation.x += 0.005;
+            group3D.rotation.y += 0.005;
+
+            // Fare hareketine göre yumuşak esneme/yönelme hareketi (Lerp mantığı)
+            group3D.rotation.y += (targetX * 0.5 - group3D.rotation.y) * 0.1;
+            group3D.rotation.x += (targetY * 0.5 - group3D.rotation.x) * 0.1;
+
+            renderer.render(scene, camera);
+        }
+        renderLoop();
+
+        // Ekran Boyutu Değiştiğinde Tasarımı Koruma (Responsive)
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
 </body>
 </html>
